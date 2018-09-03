@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -164,7 +165,7 @@ func Write() (err error) {
 	dir, fname := filepath.Split(NewFile)
 	fmt.Println(path.Join(dir, "."+fname+".swp"))
 	os.Remove(path.Join(dir, "."+fname+".swp"))
-	go sh.Run("hugo", strings.Fields("server --ignoreCache -D --watch -t twotwothree --bind 0.0.0.0 --enableGitInfo --disableFastRender")...)
+	// go sh.Run("hugo", strings.Fields("server --ignoreCache -D --watch -t twotwothree --bind 0.0.0.0 --enableGitInfo --disableFastRender")...)
 	vimrc, err := ioutil.TempFile("", "vimrc")
 	if err != nil {
 		return
@@ -179,7 +180,10 @@ func Write() (err error) {
 	if runtime.GOOS == "windows" {
 		vimExecutable = "vim.exe"
 	}
-	err = sh.RunV(vimExecutable, "-u", vimrc.Name(), "-c", "WPCLI", "+", "+startinsert", NewFile)
+	cmd := exec.Command(vimExecutable, "-u", vimrc.Name(), "-c", "WPCLI", "+", "+startinsert", NewFile)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	err = cmd.Run()
 	return
 }
 
